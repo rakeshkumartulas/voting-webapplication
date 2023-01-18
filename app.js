@@ -6,9 +6,8 @@ const {
   Admin,
   Election,
   Questions,
-  Options,
   Voter,
-  Answer,
+  
 } = require("./models");
 const bodyParser = require("body-parser");
 const path = require("path");
@@ -93,21 +92,7 @@ passport.use(
     }
   )
 );
-//pp.get('/', async (request, response)=>{
-  //const all_Todos = await Todo.getTodos();
-  //const over_due = await Todo.overdue();
-  //const due_Today = await Todo.dueToday();
-  //const due_Later = await Todo.dueLater();
-  //const completed_Items = await Todo.completedItems();
-  //if (request.accepts('html')) {
-    //response.render('index', {
-      //all_Todos, over_due, due_Today, due_Later, completed_Items,
-      //csrfToken: request.csrfToken(),
-    //});
-  //} else {
- //   response.json({all_Todos, over_due, due_Today, due_Later});
- // }
-//});
+
 
 
 
@@ -158,19 +143,6 @@ app.get("/", (request, response) => {
     });
   }
 });
-
-
-//app.delete('/todos/:id', async (request, response)=> {
- // console.log('Delete Item from a Todo table with ID Item: ', request.params.id);
- // const deleteFlag = await Todo.destroy({where: {id: request.params.id}});
-  //response.send(deleteFlag ? true : false);
-  //try {
-   // await todo.remove(request.params.id);
-   // return response.json({success:true});
-  //} catch (error) {
-  //  return response.status(422).json(error);
- // }
- // });
 
 
 
@@ -590,219 +562,11 @@ app.post(
   }
 );
 
-app.get(
-  "/elections/:electionID/questions/:questionID/edit",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.user.role === "admin") {
-      try {
-        const election = await Election.getElection(request.params.electionID);
-        if (request.user.id !== election.adminID) {
-          request.flash("error", "InCorrect election ID");
-          return response.redirect("/elections");
-        }
-        if (election.running) {
-          request.flash("error", "You  not change while election is running");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        if (election.ended) {
-          request.flash("error", "You not change when election has ended");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        const question = await Questions.getQuestion(request.params.questionID);
-        return response.render("edit_question", {
-          electionID: request.params.electionID,
-          questionID: request.params.questionID,
-          questionTitle: question.question,
-          questionDescription: question.description,
-          csrfToken: request.csrfToken(),
-        });
-      } catch (error) {
-        console.log(error);
-        return response.status(422).json(error);
-      }
-    } else if (request.user.role === "voter") {
-      return response.redirect("/");
-    }
-  }
-);
-
-app.put(
-  "/elections/:electionID/questions/:questionID/edit",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.user.role === "admin") {
-      if (request.body.question.length < 5) {
-        request.flash("error", "Question length should be minimum 5");
-        return response.json({
-          error: "Question length should be minimum 5",
-        });
-      }
-      try {
-        const election = await Election.getElection(request.params.electionID);
-        if (election.running) {
-          return response.json("You not change while election is running");
-        }
-        if (election.ended) {
-          return response.json("You not change when election has ended");
-        }
-        if (request.user.id !== election.adminID) {
-          return response.json({
-            error: "InCorrect Election ID",
-          });
-        }
-        const updatedQuestion = await Questions.updateQuestion({
-          question: request.body.question,
-          description: request.body.description,
-          id: request.params.questionID,
-        });
-        return response.json(updatedQuestion);
-      } catch (error) {
-        console.log(error);
-        return response.status(422).json(error);
-      }
-    } else if (request.user.role === "voter") {
-      return response.redirect("/");
-    }
-  }
-);
-
-app.delete(
-  "/elections/:electionID/questions/:questionID",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.user.role === "admin") {
-      try {
-        const election = await Election.getElection(request.params.electionID);
-        if (election.running) {
-          return response.json("You not change while election is running");
-        }
-        if (election.ended) {
-          return response.json("You not change when election has ended");
-        }
-        if (request.user.id !== election.adminID) {
-          request.flash("error", "InCorrect election ID");
-          return response.redirect("/elections");
-        }
-        const nq = await Questions.getNumberOfQuestions(
-          request.params.electionID
-        );
-        if (nq > 1) {
-          const res = await Questions.deleteQuestion(request.params.questionID);
-          return response.json({ success: res === 1 });
-        } else {
-          return response.json({ success: false });
-        }
-      } catch (error) {
-        console.log(error);
-        return response.status(422).json(error);
-      }
-    } else if (request.user.role === "voter") {
-      return response.redirect("/");
-    }
-  }
-);
-
-
-//app.put('/todos/:id', async (request, response) => {
- // const todo = await Todo.findByPk(request.params.id);
- // try {
-  //  const upTodo = await todo.setCompletionStatus(request.body.completed);
-  //  return response.json(upTodo);
-  //} catch (error) {
-  //  return response.status(422).json(error);
-  //}
-//});
 
 
 
 
-app.get(
-  "/elections/:id/questions/:questionID",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.user.role === "admin") {
-      try {
-        const question = await Questions.getQuestion(request.params.questionID);
-        const options = await Options.getOptions(request.params.questionID);
-        const election = await Election.getElection(request.params.id);
-        if (request.user.id !== election.adminID) {
-          request.flash("error", "InCorrect election ID");
-          return response.redirect("/elections");
-        }
-        if (election.running) {
-          request.flash("error", "You not change while election is running");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        if (election.ended) {
-          request.flash("error", "You not change when election has ended");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        if (request.accepts("html")) {
-          response.render("question_page", {
-            title: question.question,
-            description: question.description,
-            id: request.params.id,
-            questionID: request.params.questionID,
-            options,
-            csrfToken: request.csrfToken(),
-          });
-        } else {
-          return response.json({
-            options,
-          });
-        }
-      } catch (error) {
-        console.log(error);
-        return response.status(422).json(error);
-      }
-    } else if (request.user.role === "voter") {
-      return response.redirect("/");
-    }
-  }
-);
 
-app.post(
-  "/elections/:id/questions/:questionID",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.user.role === "admin") {
-      if (!request.body.option) {
-        request.flash("error", "Please enter option");
-        return response.redirect(
-          `/elections/${request.params.id}/questions/${request.params.questionID}`
-        );
-      }
-      try {
-        const election = await Election.getElection(request.params.id);
-        if (request.user.id !== election.adminID) {
-          request.flash("error", "InCorrect election ID");
-          return response.redirect("/elections");
-        }
-        if (election.running) {
-          request.flash("error", "You not change while election is running");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        if (election.ended) {
-          request.flash("error", "You not change when election has ended");
-          return response.redirect(`/elections/${request.params.id}/`);
-        }
-        await Options.addOption({
-          option: request.body.option,
-          questionID: request.params.questionID,
-        });
-        return response.redirect(
-          `/elections/${request.params.id}/questions/${request.params.questionID}`
-        );
-      } catch (error) {
-        console.log(error);
-        return response.status(422).json(error);
-      }
-    } else if (request.user.role === "voter") {
-      return response.redirect("/");
-    }
-  }
-);
 
 
 
