@@ -93,6 +93,24 @@ passport.use(
     }
   )
 );
+//pp.get('/', async (request, response)=>{
+  //const all_Todos = await Todo.getTodos();
+  //const over_due = await Todo.overdue();
+  //const due_Today = await Todo.dueToday();
+  //const due_Later = await Todo.dueLater();
+  //const completed_Items = await Todo.completedItems();
+  //if (request.accepts('html')) {
+    //response.render('index', {
+      //all_Todos, over_due, due_Today, due_Later, completed_Items,
+      //csrfToken: request.csrfToken(),
+    //});
+  //} else {
+ //   response.json({all_Todos, over_due, due_Today, due_Later});
+ // }
+//});
+
+
+
 
 passport.serializeUser((user, done) => {
   done(null, { id: user.id, role: user.role });
