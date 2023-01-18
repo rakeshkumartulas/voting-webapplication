@@ -159,6 +159,24 @@ app.get("/", (request, response) => {
   }
 });
 
+
+//app.delete('/todos/:id', async (request, response)=> {
+ // console.log('Delete Item from a Todo table with ID Item: ', request.params.id);
+ // const deleteFlag = await Todo.destroy({where: {id: request.params.id}});
+  //response.send(deleteFlag ? true : false);
+  //try {
+   // await todo.remove(request.params.id);
+   // return response.json({success:true});
+  //} catch (error) {
+  //  return response.status(422).json(error);
+ // }
+ // });
+
+
+
+
+
+
 app.get(
   "/elections",
   connectEnsureLogin.ensureLoggedIn(),
@@ -684,6 +702,20 @@ app.delete(
     }
   }
 );
+
+
+//app.put('/todos/:id', async (request, response) => {
+ // const todo = await Todo.findByPk(request.params.id);
+ // try {
+  //  const upTodo = await todo.setCompletionStatus(request.body.completed);
+  //  return response.json(upTodo);
+  //} catch (error) {
+  //  return response.status(422).json(error);
+  //}
+//});
+
+
+
 
 app.get(
   "/elections/:id/questions/:questionID",
